@@ -1,0 +1,6 @@
+.idea
+*.out
+build
+cmake-build*
+*.txt.user
+*.obj
