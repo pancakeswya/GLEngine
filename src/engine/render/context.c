@@ -32,7 +32,6 @@ static error link_shader_program(const GLuint program) {
   return kErrorNil;
 }
 
-#include <stdio.h>
 
 error render_context_create(RenderObject* object, RenderContext* context) {
   glEnable(GL_DEPTH_TEST);
@@ -43,12 +42,12 @@ error render_context_create(RenderObject* object, RenderContext* context) {
   GLuint triangles_ebo;
   glGenBuffers(1, &triangles_ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangles_ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, object->indices->size * object->indices->data_size, object->indices, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, object->indices->size * object->indices->data_size, object->indices->data, GL_STATIC_DRAW);
 
   GLuint verticies_vbo;
   glGenBuffers(1, &verticies_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, verticies_vbo);
-  glBufferData(GL_ARRAY_BUFFER, object->vertices->size * object->vertices->data_size, object->vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, object->vertices->size * object->vertices->data_size, object->vertices->data, GL_STATIC_DRAW);
 
   const GLuint verticies_index = 0;
   glVertexAttribPointer(verticies_index, 3, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -59,12 +58,12 @@ error render_context_create(RenderObject* object, RenderContext* context) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  error err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/untitled3/shaders/vertex.glsl", vertex_shader);
+  error err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
   if (err != kErrorNil) {
     return err;
   }
   const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/untitled3/shaders/fragment.glsl", fragment_shader);
+  err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
   if (err != kErrorNil) {
     return err;
   }
@@ -83,4 +82,5 @@ error render_context_create(RenderObject* object, RenderContext* context) {
 
 void render_context_free(const RenderContext* context) {
   render_object_free(context->object);
+  free(context->object);
 }

@@ -44,7 +44,7 @@ error window_create(const int width, const int height, const char* title, Window
   if (err != kErrorNil) {
     return err;
   }
-  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube.obj", &data);
+  err = obj_data_parse("/mnt/c/Users/niyaz/CLionProjects/ObjViewer_v2.0/obj/cube.obj", &data);
   if (err != kErrorNil) {
     goto cleanup;
   }
