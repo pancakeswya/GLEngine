@@ -1,30 +1,39 @@
 #include "log/log.h"
 
+#ifdef DEBUG
+
 #include <stdlib.h>
 #include <stdio.h>
 
-static inline void log_info(const char* info, const char* file, const int line) {
+static inline void log(const char* header, const char* log, const char* file, const int line) {
     fprintf(stderr,
-      "Error\n"
-      "Source file:%s\n"
-      "Line:%d\n"
-      "Log:%s", file, line, info);
+          "[%s] :\n"
+          "Source file:%s\n"
+          "Line:%d\n"
+          "Log:%s\n\n", header, file, line, log);
+}
+
+void log_info(const char* info, const char* file, const int line) {
+    log("Info", info, file, line);
 }
 
 void log_gl_error(const GLuint who, const char* file, const int line) {
     GLint length;
+    const char header[] = "ErrorGl";
     glGetShaderiv(who, GL_INFO_LOG_LENGTH, &length);
     char* info_buffer = (char*)malloc(length * sizeof(char));
     if (info_buffer == NULL) {
-        log_info("Allocation fail while logging other error, "
+        log(header, "Allocation fail while logging other error, "
                  "check error code", file, line);
         return;
     }
     glGetShaderInfoLog(who, length, &length, info_buffer);
-    log_info(info_buffer, file, line);
+    log(header,info_buffer, file, line);
     free(info_buffer);
 }
 
 void log_error(const error err, const char* file, const int line) {
-    log_info(error_str(err), file, line);
+    log("Error", error_str(err), file, line);
 }
+
+#endif // DEBUG

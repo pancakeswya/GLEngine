@@ -1,5 +1,6 @@
 #include "obj/parser.h"
 #include "base/io.h"
+#include "log/log.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -42,10 +43,12 @@ static error parse_position(const char** ptr_ptr, vector* verts, const int vert_
   for (int i = 0; i < vert_count; ++i) {
     const ObjCoord vert = strtof(ptr, &end);
     if (end == ptr) {
+      LOG_ERR(kErrorReadingFile);
       return kErrorReadingObjFile;
     }
     ObjCoord* vert_ptr = vector_push(verts, 1);
     if (vert_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
       return kErrorAllocationFailed;
     }
     *vert_ptr = vert;
@@ -69,6 +72,7 @@ static error parse_facet(const char **ptr_ptr, const ObjData *data) {
       indices.f = (unsigned int)index - 1;
     }
     if (end == ptr) {
+      LOG_ERR(kErrorReadingObjFile);
       return kErrorReadingObjFile;
     }
     ptr = end;
@@ -82,6 +86,7 @@ static error parse_facet(const char **ptr_ptr, const ObjData *data) {
           indices.t = (unsigned int)index - 1;
         }
         if (end == ptr) {
+          LOG_ERR(kErrorReadingObjFile);
           return kErrorReadingObjFile;
         }
         ptr = end;
@@ -95,23 +100,27 @@ static error parse_facet(const char **ptr_ptr, const ObjData *data) {
         indices.n = (unsigned int)index - 1;
       }
       if (end == ptr) {
+        LOG_ERR(kErrorReadingObjFile);
         return kErrorReadingObjFile;
       }
       ptr = end;
     }
     if (index_count == 4) {
+      LOG_ERR(kErrorNotSupportedGeometry);
       return kErrorNotSupportedGeometry;
     }
-    if (index_count == 3) {
+    if (index_count >= 3) {
       ObjIndices* indices_ptr = vector_push(data->indices, 2);
       if (indices_ptr == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
       }
-      *indices_ptr++ = *(ObjIndices*)vector_at(data->indices, data->indices->size - index_count);
-      *indices_ptr = *(ObjIndices*)vector_at(data->indices, data->indices->size - 2);
+      indices_ptr[0] = *(ObjIndices*)vector_at(data->indices, data->indices->size - 5);
+      indices_ptr[1] = *(ObjIndices*)vector_at(data->indices, data->indices->size - 3);
     }
     ObjIndices* indices_ptr = vector_push(data->indices, 1);
     if (indices_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
       return kErrorAllocationFailed;
     }
     *indices_ptr = indices;
@@ -157,7 +166,8 @@ static inline error read_map(const char **ptr_ptr, char **map_name) {
   ptr = skip_space(ptr);
   const char *end = end_of_name(ptr);
   *map_name = concat(NULL, ptr, end);
-  if (*map_name) {
+  if (*map_name == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
   *ptr_ptr = ptr;
@@ -178,6 +188,10 @@ static error mtl_open(const char *path, const ObjData *data) {
   char* buf = NULL;
   size_t count;
   error err = read_file(path, &buf, &count);
+  if (err != kErrorNil) {
+    LOG_ERR(err);
+    return err;
+  }
   const char *ptr = buf;
   const char *eof = ptr + count;
 
@@ -198,6 +212,7 @@ static error mtl_open(const char *path, const ObjData *data) {
           if (mtl.name) {
             ObjNewMtl* mtl_ptr = vector_push(data->mtl, 1);
             if (mtl_ptr == NULL) {
+              LOG_ERR(kErrorAllocationFailed);
               err = kErrorAllocationFailed;
               goto cleanup;
             }
@@ -211,6 +226,7 @@ static error mtl_open(const char *path, const ObjData *data) {
 
           mtl.name = concat(NULL, start, ptr);
           if (mtl.name == NULL) {
+            LOG_ERR(kErrorAllocationFailed);
             err = kErrorAllocationFailed;
             goto cleanup;
           }
@@ -272,6 +288,7 @@ static error mtl_open(const char *path, const ObjData *data) {
               ++ptr;
               err = read_map(&ptr, &mtl.map_kd);
               if (err != kErrorNil) {
+                LOG_ERR(err);
                 goto cleanup;
               }
             }
@@ -282,6 +299,7 @@ static error mtl_open(const char *path, const ObjData *data) {
               ++ptr;
               err = read_map(&ptr, &mtl.map_Ns);
               if (err != kErrorNil) {
+                LOG_ERR(err);
                 goto cleanup;
               }
             }
@@ -293,6 +311,7 @@ static error mtl_open(const char *path, const ObjData *data) {
             ptr += 4;
             err = read_map(&ptr, &mtl.map_bump);
             if (err != kErrorNil) {
+              LOG_ERR(err);
               goto cleanup;
             }
           }
@@ -307,6 +326,8 @@ static error mtl_open(const char *path, const ObjData *data) {
   if (mtl.name) {
     ObjNewMtl* mtl_ptr = vector_push(data->mtl, 1);
     if (mtl_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
+      err = kErrorAllocationFailed;
       goto cleanup;
     }
     *mtl_ptr = mtl;
@@ -329,9 +350,14 @@ static error parse_mtl(const char **ptr_ptr, const ObjData *data) {
   const char *end = end_of_name(ptr);
   char *path_mtl = concat(data->dir_path, ptr, end);
   if (path_mtl == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
-  mtl_open(path_mtl, data);
+  const error err = mtl_open(path_mtl, data);
+  if (err != kErrorNil && err != kErrorNoFileFound) {
+    LOG_ERR(err);
+    return err;
+  }
   free(path_mtl);
 
   *ptr_ptr = ptr;
@@ -344,6 +370,7 @@ static error parse_usemtl(const char** ptr_ptr, const ObjData *data) {
   const char *end = end_of_name(ptr);
   char *name = concat(NULL, ptr, end);
   if (name == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
   for (size_t i = 0; i < data->mtl->size; ++i) {
@@ -352,6 +379,7 @@ static error parse_usemtl(const char** ptr_ptr, const ObjData *data) {
       ObjUseMtl* use_mtl_ptr = vector_push(data->usemtl, 1);
       if (use_mtl_ptr == NULL) {
         free(name);
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
       }
       *use_mtl_ptr = (ObjUseMtl){
@@ -378,16 +406,19 @@ static error parse_buffer(const char *ptr, const char *end, const ObjData *data)
       if (*ptr == ' ' || *ptr == '\t') {
         err = parse_position(&ptr, data->verticies.v, 3);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       } else if (*ptr == 'n') {
         err = parse_position(&ptr, data->verticies.n, 3);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       } else if (*ptr == 't') {
         err = parse_position(&ptr, data->verticies.t, 2);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       }
@@ -396,6 +427,7 @@ static error parse_buffer(const char *ptr, const char *end, const ObjData *data)
       if (*ptr == ' ' || *ptr == '\t') {
         err = parse_facet(&ptr, data);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       }
@@ -410,6 +442,7 @@ static error parse_buffer(const char *ptr, const char *end, const ObjData *data)
         ptr += 6;
         err = parse_mtl(&ptr, data);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       }
@@ -424,6 +457,7 @@ static error parse_buffer(const char *ptr, const char *end, const ObjData *data)
         ptr += 6;
         err = parse_usemtl(&ptr, data);
         if (err != kErrorNil) {
+          LOG_ERR(err);
           return err;
         }
       }
@@ -436,18 +470,21 @@ static error parse_buffer(const char *ptr, const char *end, const ObjData *data)
 error obj_data_parse(const char *path, ObjData* data) {
   FILE *file = fopen(path, "rb");
   if (file == NULL) {
+    LOG_ERR(kErrorReadingObjFile);
     return kErrorReadingObjFile;
   } {
     const char *sep = strrchr(path, '/');
     data->dir_path = concat(NULL, path, ++sep);
     if (data->dir_path == NULL) {
       fclose(file);
+      LOG_ERR(kErrorAllocationFailed);
       return kErrorAllocationFailed;
     }
   }
   error err = kErrorNil;
   char *buffer = (char *)malloc(2 * BUFFER_SIZE);
   if (buffer == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
     err = kErrorAllocationFailed;
     goto cleanup;
   }
@@ -479,6 +516,7 @@ error obj_data_parse(const char *path, ObjData* data) {
     ++last;
     err = parse_buffer(buffer, last, data);
     if (err != kErrorNil) {
+      LOG_ERR(err);
       goto cleanup;
     }
     const size_t bytes = (size_t)(end - last);
@@ -488,6 +526,7 @@ error obj_data_parse(const char *path, ObjData* data) {
   if (data->mtl->size == 0) {
     ObjNewMtl* mtl_ptr = vector_push(data->mtl, 1);
     if (mtl_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
       err = kErrorAllocationFailed;
       goto cleanup;
     }
@@ -496,6 +535,7 @@ error obj_data_parse(const char *path, ObjData* data) {
   if (data->usemtl->size == 0) {
     ObjUseMtl* use_mtl_ptr = vector_push(data->usemtl, 1);
     if (use_mtl_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
       err = kErrorAllocationFailed;
       goto cleanup;
     }

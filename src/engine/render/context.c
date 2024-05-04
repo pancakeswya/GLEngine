@@ -1,5 +1,6 @@
 #include "engine/render/context.h"
 #include "base/io.h"
+#include "log/log.h"
 
 #include <stdlib.h>
 
@@ -7,6 +8,7 @@ static error compile_shader_from_file(const char* path, const GLuint shader) {
   char* content = NULL;
   const error err = read_file(path, &content, NULL);
   if (err != kErrorNil) {
+    LOG_ERR(err);
     return err;
   }
   const char* source = content;
@@ -17,6 +19,7 @@ static error compile_shader_from_file(const char* path, const GLuint shader) {
   GLint status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
   if (status == GL_FALSE) {
+    LOG_GL(shader);
     return kErrorShaderCompiling;
   }
   return kErrorNil;
@@ -27,6 +30,7 @@ static error link_shader_program(const GLuint program) {
   GLint status;
   glGetProgramiv(program, GL_LINK_STATUS, &status);
   if (status == GL_FALSE) {
+    LOG_GL(program);
     return kErrorProgramLinking;
   }
   return kErrorNil;
@@ -58,13 +62,15 @@ error render_context_create(RenderObject* object, RenderContext* context) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  error err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
+  error err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
   if (err != kErrorNil) {
+    LOG_ERR(err);
     return err;
   }
   const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
+  err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
   if (err != kErrorNil) {
+    LOG_ERR(err);
     return err;
   }
   context->program = glCreateProgram();
@@ -72,6 +78,7 @@ error render_context_create(RenderObject* object, RenderContext* context) {
   glAttachShader(context->program, fragment_shader);
   err = link_shader_program(context->program);
   if (err != kErrorNil) {
+    LOG_ERR(err);
     return err;
   }
   context->u_transform = glGetUniformLocation(context->program, "transform");

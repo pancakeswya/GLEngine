@@ -1,4 +1,5 @@
 #include "base/io.h"
+#include "log/log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,16 +17,19 @@ static inline long int file_size(FILE* file) {
 error read_file(const char* path, char** content, size_t* count) {
     FILE* file = fopen(path, "rb");
     if(file == NULL) {
-        return kErrorNoShaderFileFound;
+        LOG_ERR(kErrorNoFileFound);
+        return kErrorNoFileFound;
     }
     const long int n = file_size(file);
     char* buffer = (char*)malloc((n + 1) * sizeof(char));
     if(buffer == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     const size_t read = fread(buffer, sizeof(char), n, file);
     if (read != (size_t) n) {
-        return kErrorReadingShaderFile;
+        LOG_ERR(kErrorReadingFile);
+        return kErrorReadingFile;
     }
     buffer[read] = '\0';
     if (count != NULL) {

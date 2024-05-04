@@ -1,19 +1,23 @@
 #include "engine/render/object.h"
 #include "base/map.h"
+#include "log/log.h"
 
 #include <string.h>
 
 error render_object_create(RenderObject* object, ObjData* data) {
     vector* indices = vector_create(sizeof(ObjIndex), data->indices->size);
     if (indices == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     vector* vertices = vector_create(sizeof(ObjCoord), data->indices->size);
     if (vertices == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     hashmap* indices_map = hashmap_create();
     if (indices_map == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     error err = kErrorNil;
@@ -28,12 +32,14 @@ error render_object_create(RenderObject* object, ObjData* data) {
             combined_idx = next_combined_idx;
             hashmap_set(indices_map, indices_ptr, sizeof(ObjIndices), combined_idx);
             if (!hashmap_ok(indices_map)) {
+                LOG_ERR(kErrorAllocationFailed);
                 err = kErrorAllocationFailed;
                 goto cleanup;
             }
             const unsigned int i_v = indices_ptr->f * 3, i_n = indices_ptr->n * 3, i_t = indices_ptr->t * 2;
             void* vert_ptr = vector_push(vertices, 3);
             if (vert_ptr == NULL) {
+                LOG_ERR(kErrorAllocationFailed);
                 err = kErrorAllocationFailed;
                 goto cleanup;
             }
@@ -41,6 +47,7 @@ error render_object_create(RenderObject* object, ObjData* data) {
             if (data->verticies.t->size != 0) {
                 vert_ptr = vector_push(vertices, 2);
                 if (vert_ptr == NULL) {
+                    LOG_ERR(kErrorAllocationFailed);
                     err = kErrorAllocationFailed;
                     goto cleanup;
                 }
@@ -49,6 +56,7 @@ error render_object_create(RenderObject* object, ObjData* data) {
             if (data->verticies.n->size != 0) {
                 vert_ptr = vector_push(vertices, 3);
                 if (vert_ptr == NULL) {
+                    LOG_ERR(kErrorAllocationFailed);
                     err = kErrorAllocationFailed;
                     goto cleanup;
                 }
@@ -58,6 +66,7 @@ error render_object_create(RenderObject* object, ObjData* data) {
         }
         ObjIndex* index_ptr = vector_push(indices, 1);
         if (index_ptr == NULL) {
+            LOG_ERR(kErrorAllocationFailed);
             err = kErrorAllocationFailed;
             goto cleanup;
         }
@@ -77,6 +86,9 @@ cleanup:
 }
 
 void render_object_free(const RenderObject* object) {
+    if (object == NULL) {
+        return;
+    }
     vector_free(object->indices);
     vector_free(object->vertices);
     vector_free(object->usemtl);

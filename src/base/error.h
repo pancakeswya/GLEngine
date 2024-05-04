@@ -4,8 +4,8 @@
 typedef enum {
     kErrorNil = 0,
     kErrorAllocationFailed,
-    kErrorNoShaderFileFound,
-    kErrorReadingShaderFile,
+    kErrorNoFileFound,
+    kErrorReadingFile,
     kErrorShaderCompiling,
     kErrorProgramLinking,
     kErrorGlfwInit,

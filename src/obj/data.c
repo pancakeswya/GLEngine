@@ -1,4 +1,5 @@
 #include "obj/data.h"
+#include "log/log.h"
 
 #include <stdlib.h>
 
@@ -7,26 +8,32 @@ error obj_data_create(ObjData* data) {
 
     data->mtl = vector_create(sizeof(ObjNewMtl), 0);
     if (data->mtl == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     data->usemtl = vector_create(sizeof(ObjUseMtl), 0);
     if (data->usemtl == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     data->indices = vector_create(sizeof(ObjIndices), 0);
     if (data->indices == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     data->verticies.v = vector_create(sizeof(ObjCoord), 0);
     if (data->verticies.v == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     data->verticies.n = vector_create(sizeof(ObjCoord), 0);
     if (data->verticies.n == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     data->verticies.t = vector_create(sizeof(ObjCoord), 0);
     if (data->verticies.t == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
     return kErrorNil;

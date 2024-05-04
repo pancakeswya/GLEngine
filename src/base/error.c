@@ -4,8 +4,8 @@ const char* error_str(const error err) {
     static const char* err_list[] = {
         "No error occurred",
         "Allocation fail",
-        "No shader file found",
-        "Cant read shader file",
+        "No file found",
+        "Cant read file",
         "Cant compile shader",
         "Cant link program",
         "Cant init glfw",
