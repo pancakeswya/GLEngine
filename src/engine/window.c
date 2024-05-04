@@ -1,12 +1,10 @@
 #include "engine/window.h"
-#include "engine/render.h"
+#include "engine/render/render.h"
 #include "base/error.h"
-
-#ifdef DEBUG
-#include "log/log.h"
-#endif
+#include "obj/parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 static void update_fps(GLFWwindow* window) {
   static double last_update_time = 0;
@@ -41,60 +39,29 @@ error window_create(const int width, const int height, const char* title, Window
     return kErrorGlewInit;
   }
   context->window = window;
-  const RenderObject object = {
-    .vertices = (GLfloat[]){
-      // Front face
-      0.5,  0.5,  0.5,
-     -0.5,  0.5,  0.5,
-     -0.5, -0.5,  0.5,
-      0.5, -0.5,  0.5,
-
-     // Back face
-      0.5,  0.5, -0.5,
-     -0.5,  0.5, -0.5,
-     -0.5, -0.5, -0.5,
-      0.5, -0.5, -0.5,
-   },
-    .indices = (GLuint[]){
-      0, 1, 2,
-     2, 3, 0,
-
-     // Right
-     0, 3, 7,
-     7, 4, 0,
-
-     // Bottom
-     2, 6, 7,
-     7, 3, 2,
-
-     // Left
-     1, 5, 6,
-     6, 2, 1,
-
-     // Back
-     4, 7, 6,
-     6, 5, 4,
-
-     // Top
-     5, 1, 0,
-     0, 4, 5,
-    },
-    .colors = (GLfloat[]){
-      1.0, 0.4, 0.6,
-      1.0, 0.9, 0.2,
-      0.7, 0.3, 0.8,
-      0.5, 0.3, 1.0,
-
-      0.2, 0.6, 1.0,
-      0.6, 1.0, 0.4,
-      0.6, 0.8, 0.8,
-      0.4, 0.8, 0.8,
-    },
-    .verticies_size = 24 * sizeof(GLfloat),
-    .indices_size = 36 * sizeof(GLuint),
-    .colors_size = 24 * sizeof(GLfloat)
-  };
-  return render_context_create(&object, &context->render_context);
+  ObjData data;
+  error err = obj_data_create(&data);
+  if (err != kErrorNil) {
+    return err;
+  }
+  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube.obj", &data);
+  if (err != kErrorNil) {
+    goto cleanup;
+  }
+  RenderObject* object = (RenderObject*)malloc(sizeof *object);
+  if (object == NULL) {
+    err = kErrorAllocationFailed;
+    goto cleanup;
+  }
+  err = render_object_create(object, &data);
+  if (err != kErrorNil) {
+    goto cleanup;
+  }
+  obj_data_free(&data);
+  return render_context_create(object, &context->render_context);
+cleanup:
+  obj_data_free(&data);
+  return err;
 }
 
 error window_poll(const WindowContext* context) {
@@ -108,6 +75,7 @@ error window_poll(const WindowContext* context) {
   return kErrorNil;
 }
 
-void window_detroy() {
+void window_free(const WindowContext* context) {
+  render_context_free(&context->render_context);
   glfwTerminate();
 }

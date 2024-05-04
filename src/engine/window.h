@@ -2,7 +2,7 @@
 #define WINDOW_H_
 
 #include "base/error.h"
-#include "engine/render.h"
+#include "engine/render/render.h"
 
 #include <GLFW/glfw3.h>
 
@@ -13,6 +13,6 @@ typedef struct {
 
 error window_create(int width, int height, const char* title, WindowContext* context);
 error window_poll(const WindowContext* context);
-void window_detroy();
+void window_free(const WindowContext* context);
 
 #endif // WINDOW_H_

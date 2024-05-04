@@ -19,8 +19,14 @@ add_executable(gl_proj
         ${SRC_DIR}/base/io.c
         ${SRC_DIR}/base/vector.h
         ${SRC_DIR}/base/vector.c
-        ${SRC_DIR}/engine/render.h
-        ${SRC_DIR}/engine/render.c
+        ${SRC_DIR}/base/map.h
+        ${SRC_DIR}/base/map.c
+        ${SRC_DIR}/engine/render/object.h
+        ${SRC_DIR}/engine/render/object.c
+        ${SRC_DIR}/engine/render/context.h
+        ${SRC_DIR}/engine/render/context.c
+        ${SRC_DIR}/engine/render/render.h
+        ${SRC_DIR}/engine/render/render.c
         ${SRC_DIR}/engine/window.h
         ${SRC_DIR}/engine/window.c
         ${SRC_DIR}/log/log.h
@@ -34,4 +40,4 @@ add_executable(gl_proj
 
 target_link_libraries(gl_proj OpenGL::GL GLEW::GLEW glfw m)
 
-add_compile_definitions(DEBUG)
+#add_compile_definitions(DEBUG)

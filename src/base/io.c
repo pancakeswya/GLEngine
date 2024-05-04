@@ -13,7 +13,7 @@ static inline long int file_size(FILE* file) {
     return 0;
 }
 
-error read_file(const char* path, char** content) {
+error read_file(const char* path, char** content, size_t* count) {
     FILE* file = fopen(path, "rb");
     if(file == NULL) {
         return kErrorNoShaderFileFound;
@@ -23,11 +23,14 @@ error read_file(const char* path, char** content) {
     if(buffer == NULL) {
         return kErrorAllocationFailed;
     }
-    const size_t count = fread(buffer, sizeof(char), n, file);
-    if (count != (size_t) n) {
+    const size_t read = fread(buffer, sizeof(char), n, file);
+    if (read != (size_t) n) {
         return kErrorReadingShaderFile;
     }
-    buffer[count] = '\0';
+    buffer[read] = '\0';
+    if (count != NULL) {
+        *count = read;
+    }
     *content = buffer;
 
     fclose(file);

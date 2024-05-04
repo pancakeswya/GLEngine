@@ -4,11 +4,11 @@
 #include "base/error.h"
 #include "base/vector.h"
 
-typedef unsigned int ObjIndex_t;
-typedef float ObjCoord_t;
+typedef unsigned int ObjIndex;
+typedef float ObjCoord;
 
 typedef struct ObjIndices {
-    ObjIndex_t f, n, t;
+    ObjIndex f, n, t;
 } ObjIndices;
 
 typedef struct ObjNewMtl {
@@ -48,7 +48,7 @@ typedef struct ObjData {
     char *dir_path;
 } ObjData;
 
-error obj_data_init(ObjData* data);
+error obj_data_create(ObjData* data);
 void obj_data_free(const ObjData *data);
 
 #endif // OBJ_DATA_H_

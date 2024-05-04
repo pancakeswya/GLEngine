@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-vector* vector_init(const size_t data_size, const size_t init_cap) {
+vector* vector_create(const size_t data_size, const size_t init_cap) {
     vector* vec = (vector*)malloc(sizeof *vec);
     if (vec == NULL) {
         return NULL;

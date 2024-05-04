@@ -1,8 +1,10 @@
-#ifndef IO_H_
-#define IO_H_
+#ifndef BASE_IO_H_
+#define BASE_IO_H_
 
 #include "base/error.h"
 
-error read_file(const char* path, char** content);
+#include <stddef.h>
 
-#endif // IO_H_
+error read_file(const char* path, char** content, size_t* count);
+
+#endif // BASE_IO_H_

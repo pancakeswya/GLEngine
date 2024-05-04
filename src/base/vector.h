@@ -1,5 +1,5 @@
-#ifndef VECTOR_H_
-#define VECTOR_H_
+#ifndef BASE_VECTOR_H_
+#define BASE_VECTOR_H_
 
 #include <stddef.h>
 
@@ -10,9 +10,9 @@ typedef struct vector {
     void* data;
 } vector;
 
-vector* vector_init(size_t data_size, size_t init_cap);
+vector* vector_create(size_t data_size, size_t init_cap);
 void* vector_at(const vector* vec, size_t idx);
 void* vector_push(vector* vec, size_t count);
 void vector_free(vector* vec);
 
-#endif // VECTOR_H_
+#endif // BASE_VECTOR_H_

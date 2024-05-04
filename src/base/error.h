@@ -1,5 +1,5 @@
-#ifndef ERROR_H_
-#define ERROR_H_
+#ifndef BASE_ERROR_H_
+#define BASE_ERROR_H_
 
 typedef enum {
     kErrorNil = 0,
@@ -18,4 +18,4 @@ typedef enum {
 
 const char* error_str(error err);
 
-#endif // ERROR_H_
+#endif // BASE_ERROR_H_
