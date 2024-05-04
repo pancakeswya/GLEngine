@@ -13,11 +13,12 @@ void log_error(error err, const char* file, int line);
 void log_info(const char* info, const char* file, int line);
 
 #define LOG_GL(who) log_gl_error(who, __FILE__, __LINE__)
-
+#define LOG_INFO(info) log_info(info, __FILE__, __LINE__)
 #define LOG_ERR(err) log_error(err, __FILE__, __LINE__)
 
 #else
 
+#define LOG_INFO(info)
 #define LOG_GL(who)
 #define LOG_ERR(err)
 
