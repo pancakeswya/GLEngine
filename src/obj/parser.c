@@ -1,5 +1,6 @@
 #include "obj/parser.h"
 #include "base/io.h"
+#include "base/strutil.h"
 #include "log/log.h"
 
 #include <stdbool.h>
@@ -8,34 +9,6 @@
 #include <string.h>
 
 #define BUFFER_SIZE 65536
-
-static inline bool is_space(const char c) {
-  return (c == ' ') || (c == '\t') || (c == '\r');
-}
-
-static inline bool is_digit(const char c) { return (c >= '0') && (c <= '9'); }
-
-static inline bool is_end_of_name(const char c) {
-  return (c == '\t') || (c == '\r') || (c == '\n');
-}
-
-static const char *skip_space(const char *ptr) {
-  for (; is_space(*ptr); ++ptr)
-    ;
-  return ptr;
-}
-
-static const char *skip_line(const char *ptr) {
-  for (; *ptr != '\n'; ++ptr)
-    ;
-  return ++ptr;
-}
-
-static const char *end_of_name(const char *ptr) {
-  for (; !is_end_of_name(*ptr); ++ptr)
-    ;
-  return ptr;
-}
 
 static error parse_position(const char** ptr_ptr, vector* verts, const int vert_count) {
   const char *ptr = ++*ptr_ptr;
@@ -129,22 +102,6 @@ static error parse_facet(const char **ptr_ptr, const ObjData *data) {
   }
   *ptr_ptr = ptr;
   return kErrorNil;
-}
-
-static char *concat(const char *first, const char *second_p,
-                    const char *second_e) {
-  const size_t len_first = (first == NULL) ? 0 : strlen(first);
-  const size_t len_second = second_e - second_p;
-  char *str = (char *)malloc(len_first + len_second + 1);
-  if (str == NULL) {
-    return NULL;
-  }
-  if (first) {
-    memcpy(str, first, len_first);
-  }
-  memcpy(str + len_first, second_p, len_second);
-  str[len_first + len_second] = '\0';
-  return str;
 }
 
 static inline const char *read_mtl_single(const char *ptr, float *mtl) {

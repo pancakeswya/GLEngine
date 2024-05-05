@@ -10,7 +10,7 @@ set(SRC_DIR src)
 include_directories("${SRC_DIR}")
 
 set(CMAKE_C_STANDARD 11)
-#set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -O3")
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -O3")
 
 add_executable(gl_proj
         ${SRC_DIR}/base/error.h
@@ -21,6 +21,8 @@ add_executable(gl_proj
         ${SRC_DIR}/base/vector.c
         ${SRC_DIR}/base/map.h
         ${SRC_DIR}/base/map.c
+        ${SRC_DIR}/base/strutil.h
+        ${SRC_DIR}/base/strutil.c
         ${SRC_DIR}/engine/render/object.h
         ${SRC_DIR}/engine/render/object.c
         ${SRC_DIR}/engine/render/context.h

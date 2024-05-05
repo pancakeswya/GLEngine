@@ -1,14 +1,46 @@
 #include "engine/render/render.h"
-
+#include "log/log.h"
+#include "obj/parser.h"
 #include "math/matrix.h"
 
 #include <GLFW/glfw3.h>
+#include <stdlib.h>
 
 static inline float animation(const float duration) {
   const unsigned long int ms_time = glfwGetTime() * 1000;
   const unsigned int ms_duration = duration * 1000;
   const float ms_position = ms_time % ms_duration;
   return ms_position / ms_duration;
+}
+
+error render_init(RenderContext* context) {
+  ObjData data;
+  error err = obj_data_create(&data);
+  if (err != kErrorNil) {
+    LOG_ERR(err);
+    return err;
+  }
+  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube2.obj", &data);
+  if (err != kErrorNil) {
+    LOG_ERR(err);
+    goto cleanup;
+  }
+  RenderObject* object = (RenderObject*)malloc(sizeof *object);
+  if (object == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
+    err = kErrorAllocationFailed;
+    goto cleanup;
+  }
+  err = render_object_create(object, &data);
+  if (err != kErrorNil) {
+    LOG_ERR(err);
+    goto cleanup;
+  }
+  obj_data_free(&data);
+  return render_context_create(object, context);
+cleanup:
+  obj_data_free(&data);
+  return err;
 }
 
 void render(const RenderContext* context) {

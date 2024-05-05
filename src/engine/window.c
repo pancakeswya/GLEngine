@@ -1,7 +1,6 @@
 #include "engine/window.h"
 #include "engine/render/render.h"
 #include "base/error.h"
-#include "obj/parser.h"
 #include "log/log.h"
 
 #include <stdio.h>
@@ -43,33 +42,7 @@ error window_create(const int width, const int height, const char* title, Window
     return kErrorGlewInit;
   }
   context->window = window;
-  ObjData data;
-  error err = obj_data_create(&data);
-  if (err != kErrorNil) {
-    LOG_ERR(err);
-    return err;
-  }
-  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube2.obj", &data);
-  if (err != kErrorNil) {
-    LOG_ERR(err);
-    goto cleanup;
-  }
-  RenderObject* object = (RenderObject*)malloc(sizeof *object);
-  if (object == NULL) {
-    LOG_ERR(kErrorAllocationFailed);
-    err = kErrorAllocationFailed;
-    goto cleanup;
-  }
-  err = render_object_create(object, &data);
-  if (err != kErrorNil) {
-    LOG_ERR(err);
-    goto cleanup;
-  }
-  obj_data_free(&data);
-  return render_context_create(object, &context->render_context);
-cleanup:
-  obj_data_free(&data);
-  return err;
+  return render_init(&context->render_context);
 }
 
 error window_poll(const WindowContext* context) {
