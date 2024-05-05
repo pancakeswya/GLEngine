@@ -13,7 +13,8 @@ const char* error_str(const error err) {
         "Cant init glew",
         "Cant read obj file",
         "Cant read mtl file",
-        "Not supported geometry"
+        "Not supported geometry",
+        "Error loading map"
     };
     return err_list[err];
 }

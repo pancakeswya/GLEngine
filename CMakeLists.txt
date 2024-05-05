@@ -6,13 +6,18 @@ find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 
 set(SRC_DIR src)
+set(THIRD_PARTY_DIR third_party)
 
-include_directories("${SRC_DIR}")
+include_directories(
+        "${SRC_DIR}",
+        "${THIRD_PARTY_DIR}"
+)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -O3")
 
 add_executable(gl_proj
+        ${THIRD_PARTY_DIR}/stb/stb_image.h
         ${SRC_DIR}/base/error.h
         ${SRC_DIR}/base/error.c
         ${SRC_DIR}/base/io.h

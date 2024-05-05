@@ -36,7 +36,6 @@ static error link_shader_program(const GLuint program) {
   return kErrorNil;
 }
 
-
 error render_context_create(RenderObject* object, RenderContext* context) {
   glEnable(GL_DEPTH_TEST);
 

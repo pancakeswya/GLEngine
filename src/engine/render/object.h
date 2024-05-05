@@ -5,11 +5,21 @@
 #include "base/vector.h"
 #include "obj/data.h"
 
+
+typedef struct RenderMap {
+    unsigned char* image;
+    int width, height, n_channels;
+} RenderMap;
+
+typedef struct RenderMaps {
+    RenderMap kd, ns, bump;
+} RenderMaps;
+
 typedef struct RenderObject {
     vector* indices;
     vector* vertices;
+    vector* maps;
     vector* usemtl;
-    vector* mtl;
 } RenderObject;
 
 error render_object_create(RenderObject* object, ObjData* data);
