@@ -23,24 +23,16 @@ error render_init(RenderContext* context) {
   err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube2.obj", &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    goto cleanup;
+    return err;
   }
-  RenderObject* object = (RenderObject*)malloc(sizeof *object);
-  if (object == NULL) {
-    LOG_ERR(kErrorAllocationFailed);
-    err = kErrorAllocationFailed;
-    goto cleanup;
-  }
-  err = render_object_create(object, &data);
+  RenderObject object;
+  err = render_object_create(&object, &data);
+  obj_data_free(&data);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    goto cleanup;
+    return err;
   }
-  obj_data_free(&data);
-  return render_context_create(object, context);
-cleanup:
-  obj_data_free(&data);
-  return err;
+  return render_context_create(&object, context);
 }
 
 void render(const RenderContext* context) {

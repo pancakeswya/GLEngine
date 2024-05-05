@@ -36,7 +36,14 @@ static error link_shader_program(const GLuint program) {
   return kErrorNil;
 }
 
-error render_context_create(RenderObject* object, RenderContext* context) {
+error render_context_create(const RenderObject* object, RenderContext* context) {
+  context->object = (RenderObject*)malloc(sizeof(RenderObject));
+  if (context->object == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
+    return kErrorAllocationFailed;
+  }
+  *context->object = *object;
+
   glEnable(GL_DEPTH_TEST);
 
   glGenVertexArrays(1, &context->vao);
@@ -82,11 +89,13 @@ error render_context_create(RenderObject* object, RenderContext* context) {
   }
   context->u_transform = glGetUniformLocation(context->program, "transform");
 
-  context->object = object;
   return kErrorNil;
 }
 
 void render_context_free(const RenderContext* context) {
+  if (context->object == NULL) {
+    return;
+  }
   render_object_free(context->object);
   free(context->object);
 }

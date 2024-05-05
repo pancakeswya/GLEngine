@@ -14,7 +14,7 @@ typedef struct RenderContext {
     GLuint u_transform;
 } RenderContext;
 
-error render_context_create(RenderObject* object, RenderContext* context);
+error render_context_create(const RenderObject* object, RenderContext* context);
 void render_context_free(const RenderContext* context);
 
 #endif // ENGINE_RENDER_CONTEXT_H_
