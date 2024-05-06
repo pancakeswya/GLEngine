@@ -36,7 +36,25 @@ static error link_shader_program(const GLuint program) {
   return kErrorNil;
 }
 
+static unsigned int map_texture_create(const RenderMap* map) {
+  unsigned int texture;
+
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, map->width, map->height, 0, GL_RGB, GL_UNSIGNED_BYTE, map->image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  return texture;
+}
+
 error render_context_create(const RenderObject* object, RenderContext* context) {
+  static const size_t stride = 8 * sizeof(float);
+
   context->object = (RenderObject*)malloc(sizeof(RenderObject));
   if (context->object == NULL) {
     LOG_ERR(kErrorAllocationFailed);
@@ -59,9 +77,17 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
   glBindBuffer(GL_ARRAY_BUFFER, verticies_vbo);
   glBufferData(GL_ARRAY_BUFFER, object->vertices->size * object->vertices->data_size, object->vertices->data, GL_STATIC_DRAW);
 
-  const GLuint verticies_index = 0;
-  glVertexAttribPointer(verticies_index, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+  static const GLuint verticies_index = 0;
+  glVertexAttribPointer(verticies_index, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(verticies_index);
+
+  static const GLuint normal_index = 1;
+  glVertexAttribPointer(normal_index, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(normal_index);
+
+  static const GLuint texture_index = 2;
+  glVertexAttribPointer(texture_index, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+  glEnableVertexAttribArray(texture_index);
 
   glBindVertexArray(0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -87,7 +113,23 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
     LOG_ERR(err);
     return err;
   }
-  context->u_transform = glGetUniformLocation(context->program, "transform");
+  context->u_transform = glGetUniformLocation(context->program, "u_transform");
+  context->maps = vector_create(sizeof(RenderMapsTextures), object->maps->size * render_map_count);
+  if (context->maps == NULL) {
+    LOG_ERR(kErrorAllocationFailed);
+    return kErrorAllocationFailed;
+  }
+  const RenderMaps* maps = object->maps->data;
+  for(size_t i = 0; i < object->maps->size; ++i) {
+    RenderMapsTextures* map_textures_ptr = vector_push(context->maps, 1);
+    if (map_textures_ptr == NULL) {
+      LOG_ERR(kErrorAllocationFailed);
+      return kErrorAllocationFailed;
+    }
+    map_textures_ptr->map_kd = map_texture_create(&maps[i].kd);
+    map_textures_ptr->map_ns = map_texture_create(&maps[i].ns);
+    map_textures_ptr->map_bump = map_texture_create(&maps[i].bump);
+  }
 
   return kErrorNil;
 }
@@ -97,5 +139,6 @@ void render_context_free(const RenderContext* context) {
     return;
   }
   render_object_free(context->object);
+  vector_free(context->maps);
   free(context->object);
 }

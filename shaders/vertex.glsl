@@ -1,12 +1,13 @@
 #version 330
 
-layout(location = 0) in vec3 pos;
+layout(location = 0) in vec3 a_pos;
+layout(location = 1) in vec3 a_normals;
+layout(location = 2) in vec2 a_tex_coords;
 
-uniform mat4 transform;
+out vec2 tex_coords;
 
-out vec3 color;
+uniform mat4 u_transform;
 
 void main() {
-  gl_Position = transform * vec4(pos, 1.0);
-  color = vec3(1.0f, 0.4f, 0.6f);
+  gl_Position = u_transform * vec4(a_pos, 1.0);
 }

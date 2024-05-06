@@ -4,7 +4,6 @@
 #include "math/matrix.h"
 
 #include <GLFW/glfw3.h>
-#include <stdlib.h>
 
 static inline float animation(const float duration) {
   const unsigned long int ms_time = glfwGetTime() * 1000;
@@ -20,7 +19,7 @@ error render_init(RenderContext* context) {
     LOG_ERR(err);
     return err;
   }
-  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/cube2.obj", &data);
+  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/gnom/rizhignom.obj", &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
@@ -40,6 +39,7 @@ void render(const RenderContext* context) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glUseProgram(context->program);
+  glBindVertexArray(context->vao);
 
   mat4f transform = mat4f_identity;
   transform = mat4f_multiply(transform, mat4f_perspective(0.5, 0.5, 1, 5));
@@ -48,6 +48,27 @@ void render(const RenderContext* context) {
   transform = mat4f_multiply(transform, mat4f_rotate_y(2 * pi * animation(4)));
   glUniformMatrix4fv(context->u_transform, 1, GL_FALSE, transform.data);
 
-  glBindVertexArray(context->vao);
-  glDrawElements(GL_TRIANGLES, context->object->indices->size, GL_UNSIGNED_INT, NULL);
+  const RenderMapsTextures* maps = context->maps->data;
+  size_t prev_offset = 0;
+  ObjUseMtl* use_mtl = context->object->usemtl->data;
+  const GLuint map_kd_loc = glGetUniformLocation(context->program, "map_kd");
+  glUniform1i(map_kd_loc ,0);
+  const GLuint map_ns_loc = glGetUniformLocation(context->program, "map_ns");
+  glUniform1i(map_ns_loc, 1);
+  const GLuint map_bump_loc = glGetUniformLocation(context->program, "map_bump");
+  glUniform1i(map_bump_loc, 2);
+
+  for(size_t i = 0; i < context->object->usemtl->size; ++i) {
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, maps[use_mtl[i].index].map_kd);
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, maps[use_mtl[i].index].map_ns);
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, maps[use_mtl[i].index].map_bump);
+
+      glDrawElements(GL_TRIANGLES, use_mtl[i].offset - prev_offset,
+                   GL_UNSIGNED_INT,
+                   (void*)(prev_offset * sizeof(GLuint)));
+      prev_offset = use_mtl[i].offset;
+  }
 }

@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include <stdio.h>
+
 vector* vector_create(const size_t data_size, const size_t init_cap) {
     vector* vec = (vector*)malloc(sizeof *vec);
     if (vec == NULL) {

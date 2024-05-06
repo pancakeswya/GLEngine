@@ -18,7 +18,7 @@ static error load_map(const char* dir_path, const char* map_path, RenderMap* map
         return kErrorAllocationFailed;
     }
     int width, height, n_channels;
-    unsigned char* image = stbi_load(path, &width, &height, &n_channels, 0);
+    unsigned char* image = stbi_load(path, &width, &height, &n_channels, 0);\
     free(path);
     if (image == NULL) {
         LOG_ERR(kErrorLoadingMap);
@@ -40,22 +40,22 @@ static void map_free(const RenderMaps* maps) {
 }
 
 static error maps_create(const char* dir_path, const vector* mtl, vector** maps_ptr) {
-    vector* maps = vector_create(sizeof(RenderMaps), mtl->size);
+    vector* maps = *maps_ptr;
+    const ObjNewMtl* mtl_data = mtl->data;
     for (size_t i = 0; i < mtl->size; ++i) {
-        const ObjNewMtl* mtl_ptr = vector_at(mtl, i);
         RenderMaps r_maps;
-        error err = load_map(dir_path, mtl_ptr->map_kd, &r_maps.kd);
+        error err = load_map(dir_path, mtl_data[i].map_kd, &r_maps.kd);
         if (err != kErrorNil) {
             LOG_ERR(err);
             return err;
         }
-        err = load_map(dir_path, mtl_ptr->map_Ns, &r_maps.ns);
+        err = load_map(dir_path, mtl_data[i].map_Ns, &r_maps.ns);
         if (err != kErrorNil) {
             map_free(&r_maps);
             LOG_ERR(err);
             return err;
         }
-        err = load_map(dir_path, mtl_ptr->map_bump, &r_maps.bump);
+        err = load_map(dir_path, mtl_data[i].map_bump, &r_maps.bump);
         if (err != kErrorNil) {
             map_free(&r_maps);
             LOG_ERR(err);
@@ -69,12 +69,27 @@ static error maps_create(const char* dir_path, const vector* mtl, vector** maps_
         }
         *r_maps_ptr = r_maps;
     }
-    *maps_ptr = maps;
     return kErrorNil;
 }
 
+static int indices_compare(const void *a, const void *b, void *) {
+    const ObjIndices *lhs = a;
+    const ObjIndices *rhs = b;
+    if (lhs->f < rhs->f) return 1;
+    if (rhs->f < lhs->f) return 0;
+    if (lhs->n < rhs->n) return 1;
+    if (rhs->n < lhs->n) return 0;
+    if (lhs->t < rhs->t) return 1;
+    return rhs->t < lhs->t;
+}
+
+static uint64_t indices_hash(const void *item, uint64_t seed0, uint64_t seed1) {
+    return hashmap_sip(item, sizeof(ObjIndices), seed0, seed1);
+}
+
 static error optimize_geometry(const RenderObject* object, const ObjData* data) {
-    hashmap* indices_map = hashmap_create();
+    hashmap* indices_map = hashmap_create(sizeof(ObjIndices), 0, 0, 0,
+                                     indices_hash, indices_compare, NULL, NULL);
     if (indices_map == NULL) {
         LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
@@ -83,13 +98,13 @@ static error optimize_geometry(const RenderObject* object, const ObjData* data) 
     for(size_t i = 0; i < data->indices->size; ++i) {
         const ObjIndices* indices_ptr = vector_at(data->indices, i);
         ObjIndex combined_idx;
-        uintptr_t val;
-        if (hashmap_get(indices_map, indices_ptr, sizeof(ObjIndices), &val)) {
-            combined_idx = (ObjIndex)val;
+        const ObjIndex* curr_idx = hashmap_get(indices_map, indices_ptr);
+        if (curr_idx != NULL) {
+            combined_idx = *curr_idx;
         } else {
             combined_idx = next_combined_idx;
-            hashmap_set(indices_map, indices_ptr, sizeof(ObjIndices), combined_idx);
-            if (!hashmap_ok(indices_map)) {
+            hashmap_set(indices_map, &combined_idx);
+            if (hashmap_oom(indices_map)) {
                 hashmap_free(indices_map);
                 LOG_ERR(kErrorAllocationFailed);
                 return kErrorAllocationFailed;
@@ -102,15 +117,6 @@ static error optimize_geometry(const RenderObject* object, const ObjData* data) 
                 return kErrorAllocationFailed;
             }
             memcpy(vert_ptr, vector_at(data->verticies.v, i_v), 3 * sizeof(ObjCoord));
-            if (data->verticies.t->size != 0) {
-                vert_ptr = vector_push(object->vertices, 2);
-                if (vert_ptr == NULL) {
-                    hashmap_free(indices_map);
-                    LOG_ERR(kErrorAllocationFailed);
-                    return kErrorAllocationFailed;
-                }
-                memcpy(vert_ptr, vector_at(data->verticies.t, i_t), 2 * sizeof(ObjCoord));
-            }
             if (data->verticies.n->size != 0) {
                 vert_ptr = vector_push(object->vertices, 3);
                 if (vert_ptr == NULL) {
@@ -119,6 +125,15 @@ static error optimize_geometry(const RenderObject* object, const ObjData* data) 
                     return kErrorAllocationFailed;
                 }
                 memcpy(vert_ptr, vector_at(data->verticies.n, i_n), 3 * sizeof(ObjCoord));
+            }
+            if (data->verticies.t->size != 0) {
+                vert_ptr = vector_push(object->vertices, 2);
+                if (vert_ptr == NULL) {
+                    hashmap_free(indices_map);
+                    LOG_ERR(kErrorAllocationFailed);
+                    return kErrorAllocationFailed;
+                }
+                memcpy(vert_ptr, vector_at(data->verticies.t, i_t), 2 * sizeof(ObjCoord));
             }
             ++next_combined_idx;
         }
@@ -150,17 +165,16 @@ error render_object_create(RenderObject* object, ObjData* data) {
         LOG_ERR(err);
         return err;
     }
-    vector* maps = vector_create(sizeof(unsigned int), 0);
-    if (maps == NULL) {
+    object->maps = vector_create(sizeof(RenderMaps), 0);
+    if (object->maps == NULL) {
         LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
-    err = maps_create(data->dir_path, data->mtl, &maps);
+    err = maps_create(data->dir_path, data->mtl, &object->maps);
     if (err != kErrorNil) {
         LOG_ERR(err);
         return err;
     }
-    object->maps = maps;
     object->usemtl = data->usemtl;
 
     data->usemtl = NULL;

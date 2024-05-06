@@ -78,10 +78,10 @@ static error parse_facet(const char **ptr_ptr, const ObjData *data) {
       }
       ptr = end;
     }
-    if (index_count == 4) {
-      LOG_ERR(kErrorNotSupportedGeometry);
-      return kErrorNotSupportedGeometry;
-    }
+    // if (index_count == 4) {
+    //   LOG_ERR(kErrorNotSupportedGeometry);
+    //   return kErrorNotSupportedGeometry;
+    // }
     if (index_count >= 3) {
       ObjIndices* indices_ptr = vector_push(data->indices, 2);
       if (indices_ptr == NULL) {
@@ -291,10 +291,6 @@ static error mtl_open(const char *path, const ObjData *data) {
   }
 
 cleanup:
-  free(mtl.name);
-  free(mtl.map_kd);
-  free(mtl.map_Ns);
-  free(mtl.map_bump);
   free(buf);
 
   return err;
@@ -330,9 +326,9 @@ static error parse_usemtl(const char** ptr_ptr, const ObjData *data) {
     LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
+  const ObjNewMtl* mtl = data->mtl->data;
   for (size_t i = 0; i < data->mtl->size; ++i) {
-    const ObjNewMtl* mtl_ptr = vector_at(data->mtl, i);
-    if (!strcmp(mtl_ptr->name, name)) {
+    if (strcmp(mtl[i].name, name) == 0) {
       ObjUseMtl* use_mtl_ptr = vector_push(data->usemtl, 1);
       if (use_mtl_ptr == NULL) {
         free(name);
@@ -342,7 +338,7 @@ static error parse_usemtl(const char** ptr_ptr, const ObjData *data) {
       *use_mtl_ptr = (ObjUseMtl){
         .index = i
       };
-      if (data->indices->size) {
+      if (data->indices->size != 0) {
         use_mtl_ptr = vector_at(data->usemtl, data->usemtl->size - 2);
         use_mtl_ptr->offset = data->indices->size;
       }

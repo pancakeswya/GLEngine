@@ -2,12 +2,18 @@
 #define ENGINE_RENDER_CONTEXT_H_
 
 #include "base/error.h"
+#include "base/vector.h"
 #include "engine/render/object.h"
 
 #include <GL/glew.h>
 
+typedef struct RenderMapsTextures {
+    unsigned int map_kd, map_ns, map_bump;
+} RenderMapsTextures;
+
 typedef struct RenderContext {
     RenderObject* object;
+    vector* maps;
 
     GLuint program;
     GLuint vao;
