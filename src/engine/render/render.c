@@ -19,7 +19,7 @@ error render_init(RenderContext* context) {
     LOG_ERR(err);
     return err;
   }
-  err = obj_data_parse("/mnt/c/Users/user/CLionProjects/ObjViewer_v2.0/obj/gnom/rizhignom.obj", &data);
+  err = obj_data_parse("/mnt/c/Users/niyaz/CLionProjects/ObjViewer_v2.0/obj/tommy/tommy.obj", &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;

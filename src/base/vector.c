@@ -27,7 +27,7 @@ vector* vector_create(const size_t data_size, const size_t init_cap) {
 }
 
 void* vector_push(vector* vec, const size_t count) {
-    if (vec->size == vec->cap) {
+    if (vec->size + count >= vec->cap) {
         const size_t cap = vec->cap * 2 + count;
         void* ptr = realloc(vec->data, cap * vec->data_size);
         if (ptr == NULL) {
@@ -38,14 +38,14 @@ void* vector_push(vector* vec, const size_t count) {
     }
     const size_t old_size = vec->size;
     vec->size += count;
-    return vec->data + vec->data_size * old_size;
+    return ((char*)vec->data) + vec->data_size * old_size;
 }
 
 void* vector_at(const vector* vec, const size_t idx) {
     if (idx >= vec->size) {
         return NULL;
     }
-    return vec->data + vec->data_size * idx;
+    return ((char*)vec->data) + vec->data_size * idx;
 }
 
 void vector_free(vector* vec) {

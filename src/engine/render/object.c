@@ -72,9 +72,15 @@ static error maps_create(const char* dir_path, const vector* mtl, vector** maps_
     return kErrorNil;
 }
 
-static int indices_compare(const void *a, const void *b, void *) {
-    const ObjIndices *lhs = a;
-    const ObjIndices *rhs = b;
+typedef struct HashmapNode {
+  ObjIndices* indices;
+  ObjIndex index;
+} HashmapNode;
+
+static int indices_compare(const void *a, const void *b, void *udata) {
+    (void)udata;
+    const ObjIndices* lhs = ((HashmapNode*)a)->indices;
+    const ObjIndices* rhs = ((HashmapNode*)b)->indices;
     if (lhs->f < rhs->f) return 1;
     if (rhs->f < lhs->f) return 0;
     if (lhs->n < rhs->n) return 1;
@@ -84,26 +90,31 @@ static int indices_compare(const void *a, const void *b, void *) {
 }
 
 static uint64_t indices_hash(const void *item, uint64_t seed0, uint64_t seed1) {
-    return hashmap_sip(item, sizeof(ObjIndices), seed0, seed1);
+    const HashmapNode* node = item;
+    return hashmap_sip(node->indices, sizeof(ObjIndices), seed0, seed1);
 }
 
 static error optimize_geometry(const RenderObject* object, const ObjData* data) {
-    hashmap* indices_map = hashmap_create(sizeof(ObjIndices), 0, 0, 0,
+    hashmap* indices_map = hashmap_create(sizeof(HashmapNode), 0, 0, 0,
                                      indices_hash, indices_compare, NULL, NULL);
     if (indices_map == NULL) {
         LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
-    ObjIndex next_combined_idx = 0;
+    ObjIndex next_combined_idx = 0, combined_idx = 0;
     for(size_t i = 0; i < data->indices->size; ++i) {
-        const ObjIndices* indices_ptr = vector_at(data->indices, i);
-        ObjIndex combined_idx;
-        const ObjIndex* curr_idx = hashmap_get(indices_map, indices_ptr);
-        if (curr_idx != NULL) {
-            combined_idx = *curr_idx;
+        ObjIndices* indices_ptr = vector_at(data->indices, i);
+        const HashmapNode* curr_node = hashmap_get(indices_map, &(HashmapNode){
+          .indices = indices_ptr
+        });
+        if (curr_node != NULL) {
+            combined_idx = curr_node->index;
         } else {
             combined_idx = next_combined_idx;
-            hashmap_set(indices_map, &combined_idx);
+            hashmap_set(indices_map, &(HashmapNode) {
+              .indices = indices_ptr,
+              .index = combined_idx
+            });
             if (hashmap_oom(indices_map)) {
                 hashmap_free(indices_map);
                 LOG_ERR(kErrorAllocationFailed);

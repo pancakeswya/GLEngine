@@ -94,13 +94,13 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  error err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
+  error err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
   }
   const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  err = compile_shader_from_file("/mnt/c/Users/user/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
+  err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
