@@ -5,14 +5,12 @@
 #include "base/vector.h"
 #include "engine/render/object.h"
 
-#include <GL/glew.h>
-
 typedef struct RenderMapsTextures {
     unsigned int map_kd, map_ns, map_bump;
 } RenderMapsTextures;
 
 typedef struct RenderUniforms {
-  GLuint transform;
+  unsigned int transform;
 } RenderUniforms;
 
 typedef struct RenderContext {
@@ -21,10 +19,10 @@ typedef struct RenderContext {
 
     vector* maps;
 
-    GLuint program;
-    GLuint vao;
-    GLuint vbo;
-    GLuint ebo;
+    unsigned int program;
+    unsigned int vao;
+    unsigned int vbo;
+    unsigned int ebo;
 } RenderContext;
 
 typedef struct ShaderPaths ShaderPaths;

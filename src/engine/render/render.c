@@ -4,6 +4,7 @@
 #include "obj/parser.h"
 #include "math/matrix.h"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 static inline float animation(const float duration) {

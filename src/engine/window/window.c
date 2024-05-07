@@ -3,7 +3,9 @@
 #include "base/config.h"
 #include "log/log.h"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <stdio.h>
 
 static void update_fps(const Window* window) {

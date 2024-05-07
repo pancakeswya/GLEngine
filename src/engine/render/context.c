@@ -4,6 +4,7 @@
 #include "base/config.h"
 #include "log/log.h"
 
+#include <GL/glew.h>
 #include <stdlib.h>
 
 static error compile_shader_from_file(const char* path, const GLuint shader) {
