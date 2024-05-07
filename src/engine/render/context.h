@@ -27,7 +27,9 @@ typedef struct RenderContext {
     GLuint ebo;
 } RenderContext;
 
-error render_context_create(const RenderObject* object, RenderContext* context);
+typedef struct ShaderPaths ShaderPaths;
+
+error render_context_create(const ShaderPaths* shader_paths, const RenderObject* object, RenderContext* context);
 void render_context_free(const RenderContext* context);
 
 #endif // ENGINE_RENDER_CONTEXT_H_

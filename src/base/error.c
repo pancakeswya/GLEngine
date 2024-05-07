@@ -14,7 +14,8 @@ const char* error_str(const error err) {
         "Cant read obj file",
         "Cant read mtl file",
         "Not supported geometry",
-        "Error loading map"
+        "Cant load map",
+        "Cant parse config"
     };
     return err_list[err];
 }

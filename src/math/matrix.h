@@ -1,5 +1,5 @@
-#ifndef MATRIX_H_
-#define MATRIX_H_
+#ifndef MATH_MATRIX_H_
+#define MATH_MATRIX_H_
 
 #include <math.h>
 
@@ -111,4 +111,4 @@ static inline mat4f mat4f_perspective(const float r, const float t, const float 
 	};
 }
 
-#endif // MATRIX_H_
+#endif // MATH_MATRIX_H_

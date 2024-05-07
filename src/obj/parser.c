@@ -435,7 +435,7 @@ error obj_data_parse(const char *path, ObjData* data) {
     }
   }
   error err = kErrorNil;
-  char *buffer = (char *)malloc(2 * BUFFER_SIZE);
+  char *buffer = (char *)malloc(2 * BUFFER_SIZE * sizeof(char));
   if (buffer == NULL) {
     LOG_ERR(kErrorAllocationFailed);
     err = kErrorAllocationFailed;

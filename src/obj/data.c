@@ -40,16 +40,6 @@ error obj_data_create(ObjData* data) {
 }
 
 void obj_data_free(const ObjData *data) {
-    if (data->mtl) {
-        for (size_t i = 0; i < data->mtl->size; ++i) {
-            const ObjNewMtl* mtl_ptr = vector_at(data->mtl, i);
-            free(mtl_ptr->name);
-            free(mtl_ptr->map_kd);
-            free(mtl_ptr->map_Ns);
-            free(mtl_ptr->map_bump);
-        }
-        vector_free(data->mtl);
-    }
     if (data->usemtl) {
         vector_free(data->usemtl);
     }
@@ -60,4 +50,16 @@ void obj_data_free(const ObjData *data) {
     vector_free(data->verticies.t);
 
     free(data->dir_path);
+
+    if (data->mtl == NULL) {
+        return;
+    }
+    const ObjNewMtl* mtl = data->mtl->data;
+    for (size_t i = 0; i < data->mtl->size; ++i) {
+        free(mtl[i].name);
+        free(mtl[i].map_kd);
+        free(mtl[i].map_Ns);
+        free(mtl[i].map_bump);
+    }
+    vector_free(data->mtl);
 }

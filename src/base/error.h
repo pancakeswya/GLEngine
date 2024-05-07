@@ -14,7 +14,8 @@ typedef enum {
     kErrorReadingObjFile,
     kErrorReadingMtlFile,
     kErrorNotSupportedGeometry,
-    kErrorLoadingMap
+    kErrorLoadingMap,
+    kErrorParsingConfig
 } error;
 
 const char* error_str(error err);

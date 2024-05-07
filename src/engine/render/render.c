@@ -1,4 +1,5 @@
 #include "engine/render/render.h"
+#include "base/config.h"
 #include "log/log.h"
 #include "obj/parser.h"
 #include "math/matrix.h"
@@ -12,14 +13,15 @@ static inline float animation(const float duration) {
   return ms_position / ms_duration;
 }
 
-error render_init(RenderContext* context) {
+error render_init(const RenderConfig* config, RenderContext* context) {
   ObjData data;
   error err = obj_data_create(&data);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
   }
-  err = obj_data_parse("/mnt/c/Users/niyaz/CLionProjects/ObjViewer_v2.0/obj/gnom/rizhignom.obj", &data);
+  const char* object_path = *(char**)config->objects_paths->data;
+  err = obj_data_parse(object_path, &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
@@ -31,7 +33,7 @@ error render_init(RenderContext* context) {
     LOG_ERR(err);
     return err;
   }
-  return render_context_create(&object, context);
+  return render_context_create(&config->shader_paths, &object, context);
 }
 
 void render(const RenderContext* context) {

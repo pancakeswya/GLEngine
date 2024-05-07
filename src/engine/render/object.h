@@ -5,23 +5,12 @@
 #include "base/vector.h"
 #include "obj/data.h"
 
-typedef struct RenderMap {
-    unsigned char* image;
-    int width, height, n_channels;
-} RenderMap;
-
-typedef struct RenderMaps {
-    RenderMap kd, ns, bump;
-} RenderMaps;
-
 typedef struct RenderObject {
     vector* indices;
     vector* vertices;
     vector* maps;
     vector* usemtl;
 } RenderObject;
-
-static const size_t render_map_count = sizeof(RenderMaps) / sizeof(RenderMap);
 
 error render_object_create(RenderObject* object, ObjData* data);
 void render_object_free(const RenderObject* object);

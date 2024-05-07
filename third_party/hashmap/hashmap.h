@@ -1,24 +1,28 @@
-#ifndef BASE_MAP_H_
-#define BASE_MAP_H_
-
 // Copyright 2020 Joshua J Baker. All rights reserved.
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
+
+#ifndef HASHMAP_H
+#define HASHMAP_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif  // __cplusplus
+
 struct hashmap;
 
-struct hashmap *hashmap_create(size_t elsize, size_t cap, uint64_t seed0,
+struct hashmap *hashmap_new(size_t elsize, size_t cap, uint64_t seed0,
     uint64_t seed1,
     uint64_t (*hash)(const void *item, uint64_t seed0, uint64_t seed1),
     int (*compare)(const void *a, const void *b, void *udata),
     void (*elfree)(void *item),
     void *udata);
 
-struct hashmap *hashmap_create_with_allocator(void *(*malloc)(size_t),
+struct hashmap *hashmap_new_with_allocator(void *(*malloc)(size_t),
     void *(*realloc)(void *, size_t), void (*free)(void*), size_t elsize,
     size_t cap, uint64_t seed0, uint64_t seed1,
     uint64_t (*hash)(const void *item, uint64_t seed0, uint64_t seed1),
@@ -51,6 +55,8 @@ void hashmap_set_load_factor(struct hashmap *map, double load_factor);
 // DEPRECATED: use `hashmap_new_with_allocator`
 void hashmap_set_allocator(void *(*malloc)(size_t), void (*free)(void*));
 
-typedef struct hashmap hashmap;
+#if defined(__cplusplus)
+}
+#endif  // __cplusplus
 
-#endif // BASE_MAP_H_
+#endif  // HASHMAP_H

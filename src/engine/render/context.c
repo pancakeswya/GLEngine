@@ -1,5 +1,7 @@
 #include "engine/render/context.h"
+#include "engine/render/maps.h"
 #include "base/io.h"
+#include "base/config.h"
 #include "log/log.h"
 
 #include <stdlib.h>
@@ -52,7 +54,7 @@ static unsigned int map_texture_create(const RenderMap* map) {
   return texture;
 }
 
-error render_context_create(const RenderObject* object, RenderContext* context) {
+error render_context_create(const ShaderPaths* shader_paths, const RenderObject* object, RenderContext* context) {
   static const size_t stride = 8 * sizeof(float);
 
   context->object = (RenderObject*)malloc(sizeof(RenderObject));
@@ -92,13 +94,13 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  error err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/vertex.glsl", vertex_shader);
+  error err = compile_shader_from_file(shader_paths->shader_v, vertex_shader);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
   }
   const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  err = compile_shader_from_file("/mnt/c/Users/niyaz/CLionProjects/GLEngine/shaders/fragment.glsl", fragment_shader);
+  err = compile_shader_from_file(shader_paths->shader_f, fragment_shader);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
@@ -112,7 +114,7 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
     return err;
   }
   context->uniforms.transform = glGetUniformLocation(context->program, "u_transform");
-  context->maps = vector_create(sizeof(RenderMapsTextures), object->maps->size * render_map_count);
+  context->maps = vector_create(sizeof(RenderMapsTextures), object->maps->size * sizeof(RenderMaps) / sizeof(RenderMap));
   if (context->maps == NULL) {
     LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;

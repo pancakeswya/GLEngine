@@ -38,14 +38,14 @@ void* vector_push(vector* vec, const size_t count) {
     }
     const size_t old_size = vec->size;
     vec->size += count;
-    return ((char*)vec->data) + vec->data_size * old_size;
+    return (char*)vec->data + vec->data_size * old_size;
 }
 
 void* vector_at(const vector* vec, const size_t idx) {
     if (idx >= vec->size) {
         return NULL;
     }
-    return ((char*)vec->data) + vec->data_size * idx;
+    return (char*)vec->data + vec->data_size * idx;
 }
 
 void vector_free(vector* vec) {
