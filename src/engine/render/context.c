@@ -44,8 +44,8 @@ static unsigned int map_texture_create(const RenderMap* map) {
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, map->width, map->height, 0, GL_RGB, GL_UNSIGNED_BYTE, map->image);
   glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -67,14 +67,12 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
   glGenVertexArrays(1, &context->vao);
   glBindVertexArray(context->vao);
 
-  GLuint triangles_ebo;
-  glGenBuffers(1, &triangles_ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangles_ebo);
+  glGenBuffers(1, &context->ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, context->ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, object->indices->size * object->indices->data_size, object->indices->data, GL_STATIC_DRAW);
 
-  GLuint verticies_vbo;
-  glGenBuffers(1, &verticies_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, verticies_vbo);
+  glGenBuffers(1, &context->vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, context->vbo);
   glBufferData(GL_ARRAY_BUFFER, object->vertices->size * object->vertices->data_size, object->vertices->data, GL_STATIC_DRAW);
 
   static const GLuint verticies_index = 0;
@@ -113,7 +111,7 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
     LOG_ERR(err);
     return err;
   }
-  context->u_transform = glGetUniformLocation(context->program, "u_transform");
+  context->uniforms.transform = glGetUniformLocation(context->program, "u_transform");
   context->maps = vector_create(sizeof(RenderMapsTextures), object->maps->size * render_map_count);
   if (context->maps == NULL) {
     LOG_ERR(kErrorAllocationFailed);
@@ -130,6 +128,12 @@ error render_context_create(const RenderObject* object, RenderContext* context) 
     map_textures_ptr->map_ns = map_texture_create(&maps[i].ns);
     map_textures_ptr->map_bump = map_texture_create(&maps[i].bump);
   }
+  const GLuint map_kd_loc = glGetUniformLocation(context->program, "map_kd");
+  glUniform1i(map_kd_loc ,0);
+  const GLuint map_ns_loc = glGetUniformLocation(context->program, "map_ns");
+  glUniform1i(map_ns_loc, 1);
+  const GLuint map_bump_loc = glGetUniformLocation(context->program, "map_bump");
+  glUniform1i(map_bump_loc, 2);
 
   return kErrorNil;
 }

@@ -11,13 +11,20 @@ typedef struct RenderMapsTextures {
     unsigned int map_kd, map_ns, map_bump;
 } RenderMapsTextures;
 
+typedef struct RenderUniforms {
+  GLuint transform;
+} RenderUniforms;
+
 typedef struct RenderContext {
     RenderObject* object;
+    RenderUniforms uniforms;
+
     vector* maps;
 
     GLuint program;
     GLuint vao;
-    GLuint u_transform;
+    GLuint vbo;
+    GLuint ebo;
 } RenderContext;
 
 error render_context_create(const RenderObject* object, RenderContext* context);

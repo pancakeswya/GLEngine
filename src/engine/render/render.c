@@ -19,12 +19,12 @@ error render_init(RenderContext* context) {
     LOG_ERR(err);
     return err;
   }
-  err = obj_data_parse("/mnt/c/Users/niyaz/CLionProjects/ObjViewer_v2.0/obj/tommy/tommy.obj", &data);
+  err = obj_data_parse("/mnt/c/Users/niyaz/CLionProjects/ObjViewer_v2.0/obj/gnom/rizhignom.obj", &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
     return err;
   }
-  RenderObject object;
+  RenderObject object = {0};
   err = render_object_create(&object, &data);
   obj_data_free(&data);
   if (err != kErrorNil) {
@@ -46,17 +46,11 @@ void render(const RenderContext* context) {
   transform = mat4f_multiply(transform, mat4f_translation(0, 0, -3));
   transform = mat4f_multiply(transform, mat4f_rotate_x(0.15 * pi));
   transform = mat4f_multiply(transform, mat4f_rotate_y(2 * pi * animation(4)));
-  glUniformMatrix4fv(context->u_transform, 1, GL_FALSE, transform.data);
+  glUniformMatrix4fv(context->uniforms.transform, 1, GL_FALSE, transform.data);
 
   const RenderMapsTextures* maps = context->maps->data;
   size_t prev_offset = 0;
   ObjUseMtl* use_mtl = context->object->usemtl->data;
-  const GLuint map_kd_loc = glGetUniformLocation(context->program, "map_kd");
-  glUniform1i(map_kd_loc ,0);
-  const GLuint map_ns_loc = glGetUniformLocation(context->program, "map_ns");
-  glUniform1i(map_ns_loc, 1);
-  const GLuint map_bump_loc = glGetUniformLocation(context->program, "map_bump");
-  glUniform1i(map_bump_loc, 2);
 
   for(size_t i = 0; i < context->object->usemtl->size; ++i) {
       glActiveTexture(GL_TEXTURE0);

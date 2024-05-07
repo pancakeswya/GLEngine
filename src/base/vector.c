@@ -49,6 +49,9 @@ void* vector_at(const vector* vec, const size_t idx) {
 }
 
 void vector_free(vector* vec) {
+    if (vec == NULL) {
+      return;
+    }
     free(vec->data);
     free(vec);
 }

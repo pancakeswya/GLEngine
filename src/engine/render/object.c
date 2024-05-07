@@ -18,7 +18,7 @@ static error load_map(const char* dir_path, const char* map_path, RenderMap* map
         return kErrorAllocationFailed;
     }
     int width, height, n_channels;
-    unsigned char* image = stbi_load(path, &width, &height, &n_channels, 0);\
+    unsigned char* image = stbi_load(path, &width, &height, &n_channels, STBI_rgb);
     free(path);
     if (image == NULL) {
         LOG_ERR(kErrorLoadingMap);
@@ -42,8 +42,9 @@ static void map_free(const RenderMaps* maps) {
 static error maps_create(const char* dir_path, const vector* mtl, vector** maps_ptr) {
     vector* maps = *maps_ptr;
     const ObjNewMtl* mtl_data = mtl->data;
+    stbi_set_flip_vertically_on_load(true);
     for (size_t i = 0; i < mtl->size; ++i) {
-        RenderMaps r_maps;
+        RenderMaps r_maps = {0};
         error err = load_map(dir_path, mtl_data[i].map_kd, &r_maps.kd);
         if (err != kErrorNil) {
             LOG_ERR(err);
@@ -69,6 +70,7 @@ static error maps_create(const char* dir_path, const vector* mtl, vector** maps_
         }
         *r_maps_ptr = r_maps;
     }
+    *maps_ptr = maps;
     return kErrorNil;
 }
 
@@ -101,7 +103,7 @@ static error optimize_geometry(const RenderObject* object, const ObjData* data) 
         LOG_ERR(kErrorAllocationFailed);
         return kErrorAllocationFailed;
     }
-    ObjIndex next_combined_idx = 0, combined_idx = 0;
+    ObjIndex next_combined_idx = 0, combined_idx;
     for(size_t i = 0; i < data->indices->size; ++i) {
         ObjIndices* indices_ptr = vector_at(data->indices, i);
         const HashmapNode* curr_node = hashmap_get(indices_map, &(HashmapNode){
@@ -187,9 +189,7 @@ error render_object_create(RenderObject* object, ObjData* data) {
         return err;
     }
     object->usemtl = data->usemtl;
-
     data->usemtl = NULL;
-    data->mtl = NULL;
 
     return kErrorNil;
 }

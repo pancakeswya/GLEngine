@@ -57,6 +57,9 @@ error window_poll(const WindowContext* context) {
 }
 
 void window_free(const WindowContext* context) {
-  render_context_free(&context->render_context);
   glfwTerminate();
+  if (context == NULL) {
+    return;
+  }
+  render_context_free(&context->render_context);
 }

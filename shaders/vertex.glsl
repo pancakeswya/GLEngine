@@ -10,4 +10,5 @@ uniform mat4 u_transform;
 
 void main() {
   gl_Position = u_transform * vec4(a_pos, 1.0);
+  tex_coords = a_tex_coords;
 }

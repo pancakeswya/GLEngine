@@ -2,7 +2,7 @@
 #include "engine/window.h"
 
 int main() {
-    WindowContext context;
+    WindowContext context = {0};
     error err = window_create(800, 800, "Cube", &context);
     if (err == kErrorNil) {
         err = window_poll(&context);
