@@ -7,13 +7,13 @@
 
 int engine_run(const char* config_path) {
     Config config = {0};
+    RenderContext context = {0};
+    Window window;
     error err = config_open(config_path, &config);
     if (err != kErrorNil) {
         LOG_ERR(err);
-        return 1;
+        goto cleanup;
     }
-    RenderContext context = {0};
-    Window window;
     err = window_create(&config.window, &window);
     if (err != kErrorNil) {
         LOG_ERR(err);

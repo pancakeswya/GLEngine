@@ -15,26 +15,35 @@ static inline float animation(const float duration) {
 }
 
 error render_init(const RenderConfig* config, RenderContext* context) {
-  ObjData data;
+  ObjData data = {0};
+  RenderObject object = {0};
   error err = obj_data_create(&data);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    return err;
+    goto fail;
   }
   const char* object_path = *(char**)config->objects_paths->data;
   err = obj_data_parse(object_path, &data);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    return err;
+    goto fail;
   }
-  RenderObject object = {0};
   err = render_object_create(&object, &data);
-  obj_data_free(&data);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    return err;
+    goto fail;
   }
-  return render_context_create(&config->shader_paths, &object, context);
+  err = render_context_create(&config->shader_paths, &object, context);
+  if (err != kErrorNil) {
+    LOG_ERR(err);
+    goto fail;
+  }
+  obj_data_free(&data);
+  return kErrorNil;
+fail:
+  obj_data_free(&data);
+  render_object_free(&object);
+  return err;
 }
 
 void render(const RenderContext* context) {
