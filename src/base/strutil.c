@@ -3,6 +3,17 @@
 #include <string.h>
 #include <stdlib.h>
 
+char* cstrdup(const char *str) {
+    const size_t len = strlen(str) + 1;
+    char* res = (char*)malloc(len * sizeof(char));
+    if (res == NULL) {
+        return NULL;
+    }
+    memcpy(res, str, len * sizeof(char));
+    res[len - 1] = '\0';
+    return res;
+}
+
 char* concat (
     const char *first,
     const char *second_p,

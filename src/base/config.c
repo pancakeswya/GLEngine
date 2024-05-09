@@ -1,40 +1,28 @@
 #include "base/config.h"
+#include "base/strutil.h"
 #include "log/log.h"
 #include "ini/ini.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#define MATCH(s, n)
-
-static char* config_strdup(const char *str) {
-    const size_t len = strlen(str) + 1;
-    char* res = (char*)malloc(len * sizeof(char));
-    if (res == NULL) {
-        return NULL;
-    }
-    memcpy(res, str, len* sizeof(char));
-    res[len - 1] = '\0';
-    return res;
-}
-
 static int config_handler(void* conf_ptr, const char* section, const char* name,
                    const char* value) {
     Config* config = (Config*)conf_ptr;
     if (strcmp(section, "render") == 0 && strcmp(name, "shader_v") == 0) {
-        config->render.shader_paths.shader_v = config_strdup(value);
+        config->render.shader_paths.shader_v = cstrdup(value);
         if (config->render.shader_paths.shader_v == NULL) {
             LOG_ERR(kErrorAllocationFailed);
             return 0;
         }
     } else if (strcmp(section, "render") == 0 && strcmp(name, "shader_f") == 0) {
-        config->render.shader_paths.shader_f = config_strdup(value);
+        config->render.shader_paths.shader_f = cstrdup(value);
         if (config->render.shader_paths.shader_f == NULL) {
             LOG_ERR(kErrorAllocationFailed);
             return 0;
         }
     } else if (strcmp(section, "render") == 0 && strcmp(name, "objects[]") == 0) {
-        char* object_path = config_strdup(value);
+        char* object_path = cstrdup(value);
         if (object_path == NULL) {
             LOG_ERR(kErrorAllocationFailed);
             return 0;
@@ -46,7 +34,7 @@ static int config_handler(void* conf_ptr, const char* section, const char* name,
         }
         *object_paths_ptr = object_path;
     } else if (strcmp(section, "window") == 0 && strcmp(name, "name") == 0) {
-        config->window.name = config_strdup(value);
+        config->window.name = cstrdup(value);
         if (config->window.name == NULL) {
             LOG_ERR(kErrorAllocationFailed);
             return 0;

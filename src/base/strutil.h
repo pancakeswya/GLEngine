@@ -31,6 +31,7 @@ static inline const char *end_of_name(const char *ptr) {
     return ptr;
 }
 
+char* cstrdup(const char *str);
 char* concat(
     const char *first,
     const char *second_p,
