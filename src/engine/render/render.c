@@ -15,35 +15,20 @@ static inline float animation(const float duration) {
 }
 
 error render_init(const RenderConfig* config, RenderContext* context) {
-  ObjData data = {0};
   RenderObject object = {0};
-  error err = obj_data_create(&data);
-  if (err != kErrorNil) {
-    LOG_ERR(err);
-    goto fail;
-  }
   const char* object_path = *(char**)config->objects_paths->data;
-  err = obj_data_parse(object_path, &data);
+  error err = render_object_create(object_path, &object);
   if (err != kErrorNil) {
     LOG_ERR(err);
-    goto fail;
-  }
-  err = render_object_create(&object, &data);
-  if (err != kErrorNil) {
-    LOG_ERR(err);
-    goto fail;
+    return err;
   }
   err = render_context_create(&config->shader_paths, &object, context);
   if (err != kErrorNil) {
+    render_object_free(&object);
     LOG_ERR(err);
-    goto fail;
+    return err;
   }
-  obj_data_free(&data);
   return kErrorNil;
-fail:
-  obj_data_free(&data);
-  render_object_free(&object);
-  return err;
 }
 
 void render(const RenderContext* context) {
@@ -62,7 +47,7 @@ void render(const RenderContext* context) {
 
   const RenderMapsTextures* maps = context->maps->data;
   size_t prev_offset = 0;
-  ObjUseMtl* use_mtl = context->object->usemtl->data;
+  const ObjUseMtl* use_mtl = context->object->usemtl->data;
 
   for(size_t i = 0; i < context->object->usemtl->size; ++i) {
       glActiveTexture(GL_TEXTURE0);

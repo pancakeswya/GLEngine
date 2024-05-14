@@ -1,5 +1,6 @@
 #include "engine/render/object.h"
 #include "engine/render/maps.h"
+#include "obj/parser.h"
 #include "hashmap/hashmap.h"
 #include "log/log.h"
 
@@ -10,8 +11,7 @@ typedef struct HashmapNode {
   ObjIndex index;
 } HashmapNode;
 
-static int indices_compare(const void *a, const void *b, void *udata) {
-    (void)udata;
+static int indices_compare(const void *a, const void *b, __attribute__((unused)) void *udata) {
     const ObjIndices* lhs = ((HashmapNode*)a)->indices;
     const ObjIndices* rhs = ((HashmapNode*)b)->indices;
     if (lhs->f < rhs->f) return 1;
@@ -22,7 +22,7 @@ static int indices_compare(const void *a, const void *b, void *udata) {
     return rhs->t < lhs->t;
 }
 
-static uint64_t indices_hash(const void *item, uint64_t seed0, uint64_t seed1) {
+static uint64_t indices_hash(const void *item, const uint64_t seed0, const uint64_t seed1) {
     const HashmapNode* node = item;
     return hashmap_sip(node->indices, sizeof(ObjIndices), seed0, seed1);
 }
@@ -93,36 +93,48 @@ static error move_and_optimize_geometry(const RenderObject* object, const ObjDat
     return kErrorNil;
 }
 
-error render_object_create(RenderObject* object, ObjData* data) {
-    object->indices = vector_create(sizeof(ObjIndex), data->indices->size);
-    if (object->indices == NULL) {
-        LOG_ERR(kErrorAllocationFailed);
-        return kErrorAllocationFailed;
-    }
-    object->vertices = vector_create(sizeof(ObjCoord), data->indices->size);
-    if (object->vertices == NULL) {
-        LOG_ERR(kErrorAllocationFailed);
-        return kErrorAllocationFailed;
-    }
-    error err = move_and_optimize_geometry(object, data);
+error render_object_create(const char* path, RenderObject* object) {
+    ObjData data = {0};
+    error err = obj_data_create(&data);
     if (err != kErrorNil) {
         LOG_ERR(err);
         return err;
+    }
+    err = obj_data_parse(path, &data);
+    if (err != kErrorNil) {
+        LOG_ERR(err);
+        goto cleanup;
+    }
+    object->indices = vector_create(sizeof(ObjIndex), data.indices->size);
+    if (object->indices == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
+        goto cleanup;
+    }
+    object->vertices = vector_create(sizeof(ObjCoord), data.indices->size);
+    if (object->vertices == NULL) {
+        LOG_ERR(kErrorAllocationFailed);
+        goto cleanup;
+    }
+    err = move_and_optimize_geometry(object, &data);
+    if (err != kErrorNil) {
+        LOG_ERR(err);
+        goto cleanup;
     }
     object->maps = vector_create(sizeof(RenderMaps), 0);
     if (object->maps == NULL) {
         LOG_ERR(kErrorAllocationFailed);
-        return kErrorAllocationFailed;
+        goto cleanup;
     }
-    err = maps_create(data->dir_path, data->mtl, &object->maps);
+    err = maps_create(data.dir_path, data.mtl, &object->maps);
     if (err != kErrorNil) {
         LOG_ERR(err);
-        return err;
+        goto cleanup;
     }
-    object->usemtl = data->usemtl;
-    data->usemtl = NULL;
-
-    return kErrorNil;
+    object->usemtl = data.usemtl;
+    data.usemtl = NULL;
+cleanup:
+    obj_data_free(&data);
+    return err;
 }
 
 void render_object_free(const RenderObject* object) {

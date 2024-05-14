@@ -63,7 +63,6 @@ error render_context_create(const ShaderPaths* shader_paths, const RenderObject*
     LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
-  *context->object = *object;
 
   glEnable(GL_DEPTH_TEST);
 
@@ -120,6 +119,7 @@ error render_context_create(const ShaderPaths* shader_paths, const RenderObject*
     LOG_ERR(kErrorAllocationFailed);
     return kErrorAllocationFailed;
   }
+  *context->object = *object;
   const RenderMaps* maps = object->maps->data;
   for(size_t i = 0; i < object->maps->size; ++i) {
     RenderMapsTextures* map_textures_ptr = vector_push(context->maps, 1);
