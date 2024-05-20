@@ -1,0 +1,9 @@
+[submodule "third_party/hashmap.c"]
+	path = third_party/hashmap.c
+	url = https://github.com/tidwall/hashmap.c
+[submodule "third_party/inih"]
+	path = third_party/inih
+	url = https://github.com/benhoyt/inih
+[submodule "third_party/stb"]
+	path = third_party/stb
+	url = git@github.com:nothings/stb.git

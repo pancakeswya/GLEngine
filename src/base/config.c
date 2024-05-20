@@ -1,7 +1,7 @@
 #include "base/config.h"
 #include "base/strutil.h"
 #include "log/log.h"
-#include "ini/ini.h"
+#include "inih/ini.h"
 
 #include <stdlib.h>
 #include <string.h>

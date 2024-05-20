@@ -1,7 +1,7 @@
 #include "engine/render/object.h"
 #include "engine/render/maps.h"
+#include "hashmap.c/hashmap.h"
 #include "obj/parser.h"
-#include "hashmap/hashmap.h"
 #include "log/log.h"
 
 #include <string.h>

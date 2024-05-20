@@ -18,10 +18,10 @@ set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -O3")
 
 add_executable(gl_proj
         ${THIRD_PARTY_DIR}/stb/stb_image.h
-        ${THIRD_PARTY_DIR}/hashmap/hashmap.h
-        ${THIRD_PARTY_DIR}/hashmap/hashmap.c
-        ${THIRD_PARTY_DIR}/ini/ini.h
-        ${THIRD_PARTY_DIR}/ini/ini.c
+        ${THIRD_PARTY_DIR}/hashmap.c/hashmap.h
+        ${THIRD_PARTY_DIR}/hashmap.c/hashmap.c
+        ${THIRD_PARTY_DIR}/inih/ini.h
+        ${THIRD_PARTY_DIR}/inih/ini.c
 
         ${SRC_DIR}/base/error.h
         ${SRC_DIR}/base/error.c
@@ -58,4 +58,4 @@ target_link_libraries(gl_proj OpenGL::GL GLEW::GLEW glfw m)
 
 add_compile_definitions(INI_STOP_ON_FIRST_ERROR INI_USE_STACK=0)
 
-#add_compile_definitions(DEBUG)
+add_compile_definitions(DEBUG)
